@@ -12,9 +12,7 @@ class GPTService:
     def __init__(self, model: str = "gpt-4o-mini", temperature: float = 0):
         self._llm = ChatOpenAI(model=model, temperature=temperature)
         self._messages = [
-            SystemMessage(
-                content="あなたの名前はパグ蔵です。あなたは犬です。語尾にガウをつけて話します。"
-            ),
+            SystemMessage(content="あなたの名前はパグ蔵です。あなたは犬です。語尾にガウをつけて話します。"),
         ]
 
     def talk(self, user_message: models.UserMessage) -> models.AIResponse:

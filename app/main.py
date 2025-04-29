@@ -30,9 +30,7 @@ async def webhook(
 ):
     body = await request.body()
     try:
-        background_tasks.add_task(
-            handler.handle, body.decode("utf-8"), x_line_signature
-        )
+        background_tasks.add_task(handler.handle, body.decode("utf-8"), x_line_signature)
     except InvalidSignatureError:
         raise HTTPException(status_code=400, detail="Invalid signature")
     return "ok"
@@ -46,13 +44,9 @@ def handle_message(event: MessageEvent):
     gpt_service = GPTService()
     ai_message = gpt_service.talk(models.UserMessage(message=event.message.text))
     if not ai_message:
-        line_bot_api.reply_message(
-            event.reply_token, TextSendMessage(text="エラーが発生しました")
-        )
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="エラーが発生しました"))
         return
-    line_bot_api.reply_message(
-        event.reply_token, TextSendMessage(text=ai_message.message)
-    )
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ai_message.message))
 
 
 @app.post("/talk", response_model=models.AIResponse)
