@@ -2,18 +2,21 @@ import os
 
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextSendMessage
 from pydantic import BaseModel, Field
 
-app = FastAPI()
 load_dotenv()
+app = FastAPI()
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {"Hello": "Worl"}
 
 
 line_bot_api = LineBotApi(os.environ["CHANNEL_ACCESS_TOKEN"])
@@ -61,10 +64,21 @@ def handle_message(event: MessageEvent):
     )
 
 
+messages = [
+    SystemMessage(
+        content="あなたの名前はパグ蔵です。あなたは犬です。語尾にガウをつけて話します。"
+    ),
+]
+
+
 @app.post("/talk", response_model=AIResponse)
 def ai_talk(user_message: UserMessage) -> AIResponse:
     try:
-        ai_message = user_message.message
-        return AIResponse(message=ai_message)
+        messages.append(HumanMessage(content=user_message.message))
+        ai_response = llm.invoke(messages)
+        if not ai_response.content:
+            raise HTTPException(status_code=500, detail="AI response is empty")
+        messages.append(AIMessage(content=ai_response.content))
+        return AIResponse(message=ai_response.content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
